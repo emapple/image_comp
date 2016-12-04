@@ -22,10 +22,10 @@ class QuadTree:
         else:
             self.depth=parent.depth+1
             self.tot_depth=parent.tot_depth
-        self.data=np.array(data)
+        #self.data=np.array(data)
         #self.value=np.mean(self.data)
         self.var=None
-        mdepth=maxdepth(self.data) # remaining levels of recursion
+        mdepth=maxdepth(data) # remaining levels of recursion
         mini = 0
         minj=0
         maxi=len(data)-1
@@ -55,7 +55,7 @@ class QuadTree:
                 self.children.append(QuadTree(data_sw,parent=self))
             if data_se.shape!=(0,0):
                 self.children.append(QuadTree(data_se,parent=self))
-            self.data=[child.data for child in self.children]
+            #self.data=[child.data for child in self.children]
             self.value=np.mean([child.value for child in self.children])
             sortlist=np.sort([child.value for child in self.children])
             varvalue=(sortlist[-1]-sortlist[0])/self.value
@@ -67,7 +67,7 @@ class QuadTree:
             
         else:
             self.children=None
-            self.value=np.mean(self.data)
+            self.value=np.mean(data)
             self.var=-1
 
     def prune(self,tolerance): # tolerance should be some acceptable difference in a quadrant normalized to the quadrant mean
@@ -78,24 +78,49 @@ class QuadTree:
                 for child in self.children:
                     child.prune(tolerance)
     
-    def displaytree(self,depth):
-        if depth==0:
-            print self.data
+#    def displaytree(self,depth):
+#        if depth==0:
+#            #print self.data
+#        else:
+#            for child in self.children:
+#                child.displaytree(depth-1)
+
+    def decompress(self):
+        if self.children is None:
+            if self.depth<self.tot_depth:
+                self.children=[QuadTree([self.value]),QuadTree([self.value]),QuadTree([self.value]),QuadTree([self.value])]
+                for child in self.children:
+                    child.tot_depth=self.tot_depth
+                    child.depth=self.depth+1
+                    decompress(child)
         else:
             for child in self.children:
-                child.displaytree(depth-1)
-
-def decompress(tree):
-    if tree.children is None:
-        if tree.depth<tree.tot_depth:
-            tree.children=[QuadTree([tree.value]),QuadTree([tree.value]),QuadTree([tree.value]),QuadTree([tree.value])]
-            for child in tree.children:
-                child.tot_depth=tree.tot_depth
                 decompress(child)
-    else:
-        for child in tree.children:
-            decompress(child)
+
+class makedata:
+    
+    def __init__(self,tree):
+        self.data=np.zeros((2**tree.tot_depth,2**tree.tot_depth))
+        self.data[:]=np.NAN
+        self.tree=tree
+        self.build(tree)
         
+    def build(self,tree,midi=None,midj=None):
+        if midi is None:
+            midi=0.5*len(self.data)
+        if midj is None:
+            midj=0.5*len(self.data[0])
+        if tree.depth<tree.tot_depth-1:
+            self.build(tree.children[0],midi=midi-2**(tree.tot_depth-tree.depth-2),midj=midj-2**(tree.tot_depth-tree.depth-2))
+            self.build(tree.children[1],midi=midi-2**(tree.tot_depth-tree.depth-2),midj=midj+2**(tree.tot_depth-tree.depth-2))
+            self.build(tree.children[2],midi=midi+2**(tree.tot_depth-tree.depth-2),midj=midj-2**(tree.tot_depth-tree.depth-2))
+            self.build(tree.children[3],midi=midi+2**(tree.tot_depth-tree.depth-2),midj=midj+2**(tree.tot_depth-tree.depth-2))
+        else:
+            self.data[int(midi-1),int(midj-1)]=tree.children[0].value
+            self.data[int(midi-1),int(midj)]=tree.children[1].value
+            self.data[int(midi),int(midj-1)]=tree.children[2].value
+            self.data[int(midi),int(midj)]=tree.children[3].value
+
 
 #    def prune(self,tolerance):
 #        if self.children is not None:
