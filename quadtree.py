@@ -38,15 +38,18 @@ class QuadTree:
         midi=0.5*(self.mini+self.maxi)
         midj=0.5*(self.minj+self.maxj)
 
+        ceilj=np.ceil(midj)
+        ceili=np.ceil(midi)
+
         self.sizei=self.maxi-self.mini
         self.sizej=self.maxj-self.minj
 
         if mdepth>0:
             self.children=[]
-            data_nw=data[minj:int(np.ceil(midj)),mini:int(np.ceil(midi))]
-            data_ne=data[minj:int(np.ceil(midj)),int(np.ceil(midi)):maxi+1]
-            data_sw=data[int(np.ceil(midj)):maxj+1,mini:int(np.ceil(midi))]
-            data_se=data[int(np.ceil(midj)):maxj+1,int(np.ceil(midi)):maxi+1]
+            data_nw=data[minj:int(ceilj),mini:int(ceili)]
+            data_ne=data[minj:int(ceilj),int(ceili):maxi+1]
+            data_sw=data[int(ceilj):maxj+1,mini:int(ceili)]
+            data_se=data[int(ceilj):maxj+1,int(ceili):maxi+1]
             if data_nw.shape!=(0,0):
                 self.children.append(QuadTree(data_nw,parent=self))
             if data_ne.shape!=(0,0):
@@ -92,10 +95,10 @@ class QuadTree:
                 for child in self.children:
                     child.tot_depth=self.tot_depth
                     child.depth=self.depth+1
-                    decompress(child)
+                    child.decompress()
         else:
             for child in self.children:
-                decompress(child)
+                child.decompress()
 
 class makedata:
     
