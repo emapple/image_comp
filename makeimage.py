@@ -1,26 +1,27 @@
 import numpy as np
 from astropy.io import fits
 
-def make2n(table,default=0):
-    """ Takes a square table and makes it divisble for a quadtree"""
+def make2n(table_in,default=0):
+    """ Takes a rectangular table and makes it divisble for a quadtree"""
     try:
-        table=table.tolist()
+        table=table_in.tolist()
     except AttributeError:
-        pass
-    lside=len(table)
-    ltest=float(lside)
+        table=table_in[:]
+    lside1=len(table)
+    lside2=len(table[0])
     ncount=0
-    while ltest >1.:
-        ltest=ltest/2.
-        ncount+=1
-    ladd=2**ncount-lside
+    ncount1=np.ceil(np.log2(lside1))
+    print ncount1
+    ncount2=np.ceil(np.log2(lside2))
+    print ncount2
+    ncount=int(max(ncount1,ncount2))
+    ladd1=2**ncount-lside1
+    ladd2=2**ncount-lside2
     for row in table:
-        for i in range(ladd):
+        for i in range(ladd2):
             row.append(default)
-    for i in range(ladd):
-        table.append([])
-        for j in range(2**ncount):
-            table[-1].append(default)
+    for i in range(ladd1):
+        table.append([default]*(2**ncount))
     table=np.array(table)
     return table
     
