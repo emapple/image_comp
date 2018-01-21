@@ -1,7 +1,7 @@
 import numpy as np
 from astropy.io import fits
 
-def make2n(table_in,default=0):
+def make2n(table_in,default=100):
     """ Takes a rectangular table and makes it divisble for a quadtree"""
     try:
         table=table_in.tolist()
@@ -11,9 +11,7 @@ def make2n(table_in,default=0):
     lside2=len(table[0])
     ncount=0
     ncount1=np.ceil(np.log2(lside1))
-    print ncount1
     ncount2=np.ceil(np.log2(lside2))
-    print ncount2
     ncount=int(max(ncount1,ncount2))
     ladd1=2**ncount-lside1
     ladd2=2**ncount-lside2
